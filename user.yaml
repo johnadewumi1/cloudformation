@@ -1,0 +1,48 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Metadata:
+  License: Apache-2.0
+Description: 'Creating user and Gropu for Saidatech'
+Parameters:
+  Password:
+    NoEcho: 'true'
+    Type: String
+    Description: new account
+    MinLength: '1'
+    MaxLength: '41'
+    ConstraintDescription: the password must be between 1 and 41 characters
+Resources:
+  SaidatechWebapUser:
+    Type: AWS::IAM::User
+    Properties:
+      LoginProfile:
+        Password: !Ref 'Password'
+  SaidatechWebappGroup:
+    Type: AWS::IAM::Group
+  Users:
+    Type: AWS::IAM::UserToGroupAddition
+    Properties:
+      GroupName: !Ref 'SaidatechWebappGroup'
+      Users: [!Ref 'SaidatechWebapUser']
+  CFNUserPolicies:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: SaidatechWebappolicy
+      PolicyDocument:
+        Statement:
+        - Effect: Allow
+          Action:
+          - "s3:*"
+          - "ses:*"
+          Resource: '*'
+      Groups: [!Ref 'SaidatechWebappGroup']
+  CFNKeys:
+    Type: AWS::IAM::AccessKey
+    Properties:
+      UserName: !Ref 'SaidatechWebapUser'
+Outputs:
+  AccessKey:
+    Value: !Ref 'CFNKeys'
+    Description: AWSAccessKeyId of new user
+  SecretKey:
+    Value: !GetAtt [CFNKeys, SecretAccessKey]
+    Description: AWSSecretAccessKey of new user
